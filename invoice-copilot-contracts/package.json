@@ -1,0 +1,16 @@
+{
+  "name": "invoice-copilot-contracts",
+  "version": "0.1.0",
+  "description": "Smart contracts for the Agentic Invoice Co-Pilot (InvoiceRegistry + ERC-8004 agent payments)",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:optimism-sepolia": "hardhat run scripts/deploy.ts --network optimismSepolia",
+    "deploy:filecoin-calibration": "hardhat run scripts/deploy.ts --network filecoinCalibration"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.0"
+  }
+}

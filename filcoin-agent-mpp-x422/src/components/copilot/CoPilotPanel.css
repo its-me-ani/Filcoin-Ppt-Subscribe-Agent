@@ -1,0 +1,108 @@
+.copilot-modal {
+  --width: 480px;
+  --height: 100vh;
+  --border-radius: 0;
+}
+
+@media (max-width: 640px) {
+  .copilot-modal {
+    --width: 100vw;
+  }
+}
+
+.copilot-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 100%;
+}
+
+.copilot-hint ul {
+  margin: 8px 0 0 18px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.copilot-entry .bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 85%;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.copilot-entry .bubble.user {
+  background: var(--ion-color-primary, #3880ff);
+  color: #fff;
+  align-self: flex-end;
+  margin-left: auto;
+}
+.copilot-entry .bubble.assistant {
+  background: #f2f3f5;
+  color: #222;
+  align-self: flex-start;
+}
+
+.tool-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #fafbfc;
+  border: 1px solid #eef0f3;
+}
+.tool-row.ok { border-left: 3px solid #12b886; }
+.tool-row.fail { border-left: 3px solid #e03131; color: #c92a2a; }
+.tool-row .tool-name { font-weight: 600; text-transform: none; }
+.tool-row .tool-summary { color: #555; font-size: 12px; }
+.tool-row ion-icon { font-size: 16px; color: inherit; flex-shrink: 0; }
+
+.copilot-loading,
+.copilot-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #555;
+}
+.copilot-error { color: #c92a2a; background: #fff5f5; border-radius: 6px; }
+
+.copilot-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px;
+  background: #f8fafb;
+  border-radius: 8px;
+}
+.copilot-chip {
+  display: inline-flex;
+  flex-direction: column;
+  padding: 6px 10px;
+  background: #fff;
+  border: 1px solid #dfe4ea;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.chip-label { font-weight: 600; color: #333; }
+.chip-value { color: #667; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; }
+
+.copilot-pay { margin-top: 12px; }
+.pay-buttons { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+
+.copilot-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+}
+.copilot-input-row ion-input {
+  flex: 1;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  border: 1px solid #e2e6eb;
+  border-radius: 8px;
+}

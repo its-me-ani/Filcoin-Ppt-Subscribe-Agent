@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/anirudh-sharma/Desktop/Local\\\\ Invoice\\\\ Ai/**)",
+      "Read(//home/anirudh-sharma/Desktop/Local\\\\ Invoice\\\\ Ai/Invoice-mvp-basic-v6/**)"
+    ]
+  }
+}
