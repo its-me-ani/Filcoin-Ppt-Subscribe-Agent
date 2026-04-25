@@ -30,6 +30,7 @@ export async function runAgent(opts: {
   sessionId?: string;
   userMessage: string;
   maxSteps?: number;
+  onTurn?: (turn: AgentTurn) => void;
 }): Promise<{
   sessionId: string;
   turns: AgentTurn[];
@@ -42,7 +43,9 @@ export async function runAgent(opts: {
     { role: 'user', content: opts.userMessage },
   ];
 
-  turns.push({ role: 'user', content: opts.userMessage });
+  const userTurn: AgentTurn = { role: 'user', content: opts.userMessage };
+  turns.push(userTurn);
+  if (opts.onTurn) opts.onTurn(userTurn);
 
   const maxSteps = opts.maxSteps ?? 8;
   for (let step = 0; step < maxSteps; step++) {
@@ -50,7 +53,9 @@ export async function runAgent(opts: {
     console.log(`[Turn ${step}] Gemini resp:`, JSON.stringify(resp, null, 2));
 
     if (resp.content || resp.toolCalls.length > 0) {
-      turns.push({ role: 'assistant', content: resp.content, toolCalls: resp.toolCalls });
+      const assistantTurn: AgentTurn = { role: 'assistant', content: resp.content, toolCalls: resp.toolCalls };
+      turns.push(assistantTurn);
+      if (opts.onTurn) opts.onTurn(assistantTurn);
       messages.push({ role: 'assistant', content: resp.content, toolCalls: resp.toolCalls });
     }
 
@@ -58,12 +63,14 @@ export async function runAgent(opts: {
 
     for (const call of resp.toolCalls) {
       const result = await runTool(session, call.name, call.arguments);
-      turns.push({
+      const toolTurn: AgentTurn = {
         role: 'tool',
         content: JSON.stringify(result),
         toolCall: { name: call.name, arguments: call.arguments },
         toolResult: { name: call.name, ok: result.ok, data: result.data, error: result.error },
-      });
+      };
+      turns.push(toolTurn);
+      if (opts.onTurn) opts.onTurn(toolTurn);
       messages.push({
         role: 'tool',
         name: call.name,

@@ -9,18 +9,39 @@ agentRouter.post('/chat', async (req, res) => {
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'message required' });
     }
-    const result = await runAgent({ sessionId, userMessage: message, maxSteps });
-    return res.json({
-      sessionId: result.sessionId,
-      turns: result.turns,
-      invoice: result.session.invoice,
-      storage: result.session.storage,
-      anchor: result.session.anchor,
-      payment: result.session.payment,
-      history: result.session.history,
+
+    // Stream response using NDJSON (Newline Delimited JSON)
+    res.setHeader('Content-Type', 'application/x-ndjson');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const result = await runAgent({
+      sessionId,
+      userMessage: message,
+      maxSteps,
+      onTurn: (turn) => {
+        // Send intermediate turn to the client immediately
+        res.write(JSON.stringify({ type: 'turn', turn }) + '\n');
+      }
     });
+
+    // Final payload with all session info
+    res.write(JSON.stringify({
+      type: 'done',
+      result: {
+        sessionId: result.sessionId,
+        turns: result.turns,
+        invoice: result.session.invoice,
+        storage: result.session.storage,
+        anchor: result.session.anchor,
+        payment: result.session.payment,
+        history: result.session.history,
+      }
+    }) + '\n');
+    res.end();
   } catch (e) {
-    return res.status(500).json({ error: (e as Error).message });
+    res.write(JSON.stringify({ type: 'error', error: (e as Error).message }) + '\n');
+    res.end();
   }
 });
 

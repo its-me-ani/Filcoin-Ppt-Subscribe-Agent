@@ -31,6 +31,8 @@ export async function chat(messages: LlmMessage[], tools: LlmToolSpec[]): Promis
       return ollama(messages, tools);
     case 'gemini':
       return gemini(messages, tools);
+    case 'lmstudio':
+      return lmstudio(messages, tools);
     case 'mock':
     default:
       return mock(messages, tools);
@@ -139,6 +141,40 @@ async function openai(messages: LlmMessage[], tools: LlmToolSpec[]): Promise<Llm
   };
 }
 
+// ─── LM Studio (OpenAI Compatible) ──────────────────────────────────────────
+async function lmstudio(messages: LlmMessage[], tools: LlmToolSpec[]): Promise<LlmResponse> {
+  const endpoint = env.ai.endpoint || 'http://127.0.0.1:1234/v1';
+  const res = await fetch(`${endpoint.replace(/\/$/, '')}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${env.ai.apiKey || 'lm-studio'}`,
+    },
+    body: JSON.stringify({
+      model: env.ai.model || 'local-model',
+      messages,
+      tools: tools.length ? tools.map((t) => ({
+        type: 'function',
+        function: { name: t.name, description: t.description, parameters: t.parameters },
+      })) : undefined,
+      tool_choice: tools.length ? 'auto' : undefined,
+      temperature: 0.7,
+    }),
+  });
+  if (!res.ok) throw new Error(`LM Studio ${res.status}: ${await res.text()}`);
+  const data = (await res.json()) as any;
+  const msg = data.choices?.[0]?.message || {};
+  return {
+    content: msg.content ?? '',
+    toolCalls: (msg.tool_calls ?? []).map((tc: any) => ({
+      id: tc.id,
+      name: tc.function.name,
+      arguments: typeof tc.function.arguments === 'string' ? JSON.parse(tc.function.arguments) : tc.function.arguments,
+    })),
+    finish: data.choices?.[0]?.finish_reason === 'tool_calls' ? 'tool_calls' : 'stop',
+  };
+}
+
 // ─── Anthropic ──────────────────────────────────────────────────────────────
 async function anthropic(messages: LlmMessage[], tools: LlmToolSpec[]): Promise<LlmResponse> {
   const sys = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n');
@@ -224,14 +260,14 @@ async function ollama(messages: LlmMessage[], tools: LlmToolSpec[]): Promise<Llm
 async function gemini(messages: LlmMessage[], tools: LlmToolSpec[]): Promise<LlmResponse> {
   const { GoogleGenAI } = await import('@google/genai');
   const ai = new GoogleGenAI({ apiKey: env.ai.apiKey });
-  
+
   const sys = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n');
   const contents = messages
     .filter((m) => m.role !== 'system')
     .map((m) => {
       if (m.role === 'tool') {
         let resultObj = m.content;
-        try { resultObj = JSON.parse(m.content); } catch (e) {}
+        try { resultObj = JSON.parse(m.content); } catch (e) { }
         return {
           role: 'user',
           parts: [{ functionResponse: { name: m.name || 'tool', response: typeof resultObj === 'object' ? resultObj : { result: resultObj } } }],
@@ -263,7 +299,7 @@ async function gemini(messages: LlmMessage[], tools: LlmToolSpec[]): Promise<Llm
   let text = '';
   const calls: (ToolCall & { id: string })[] = [];
   const parts = response.candidates?.[0]?.content?.parts || [];
-  
+
   for (const part of parts) {
     if (part.text) text += part.text;
     if (part.functionCall) {

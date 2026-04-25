@@ -88,6 +88,7 @@ export interface ToolResult {
 export interface AgentTurn {
   role: 'user' | 'assistant' | 'tool';
   content: string;
+  toolCalls?: (ToolCall & { id?: string })[];
   toolCall?: ToolCall;
   toolResult?: ToolResult;
 }

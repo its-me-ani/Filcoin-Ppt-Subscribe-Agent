@@ -15,7 +15,7 @@ export const env = {
   nodeEnv: str('NODE_ENV', 'development'),
 
   ai: {
-    provider: str('AI_PROVIDER', 'mock') as 'openai' | 'anthropic' | 'ollama' | 'mock' | 'gemini',
+    provider: str('AI_PROVIDER', 'mock') as 'openai' | 'anthropic' | 'ollama' | 'mock' | 'gemini' | 'lmstudio',
     model: str('AI_MODEL', 'claude-sonnet-4-6'),
     apiKey: str('AI_API_KEY'),
     endpoint: str('AI_ENDPOINT'),
