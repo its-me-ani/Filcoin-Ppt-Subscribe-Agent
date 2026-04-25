@@ -68,16 +68,35 @@ export const CoPilotPanel: React.FC<Props> = ({ isOpen, onClose, initialPrompt, 
     setInput('');
     setLoading(true);
     try {
-      const resp = await sendMessage(trimmed, sessionId);
+      const resp = await sendMessage(trimmed, sessionId, (turn) => {
+        // Stream updates live
+        if (turn.role === 'assistant' && turn.content) {
+          setChat((c) => [...c, { kind: 'assistant', text: turn.content }]);
+        } else if (turn.role === 'tool' && turn.toolResult) {
+          setChat((c) => [
+            ...c,
+            {
+              kind: 'tool',
+              name: turn.toolResult!.name,
+              ok: turn.toolResult!.ok,
+              summary: turn.toolResult!.ok ? 'Processing...' : turn.toolResult!.error ?? 'Failed',
+            }
+          ]);
+        }
+      });
+
+      // Final confirmation sync
       setSessionId(resp.sessionId);
       setState(resp);
-      const newEntries: ChatEntry[] = [];
+
+      // We already streamed everything to `chat` live via onTurn
+      const finalTurns: ChatEntry[] = [{ kind: 'user', text: trimmed }];
       for (const turn of resp.turns) {
         if (turn.role === 'assistant' && turn.content) {
-          newEntries.push({ kind: 'assistant', text: turn.content });
+          finalTurns.push({ kind: 'assistant', text: turn.content });
         } else if (turn.role === 'tool' && turn.toolResult) {
           const h = resp.history.find((x) => x.tool === turn.toolResult!.name);
-          newEntries.push({
+          finalTurns.push({
             kind: 'tool',
             name: turn.toolResult.name,
             ok: turn.toolResult.ok,
@@ -85,8 +104,13 @@ export const CoPilotPanel: React.FC<Props> = ({ isOpen, onClose, initialPrompt, 
           });
         }
       }
-      // Replace with deduped view (only last assistant line of each "round" + all tools)
-      setChat((c) => [...c, ...newEntries]);
+
+      // Keep previous chat minus whatever we streamed on this round, then append final curated turns
+      setChat((c) => {
+        const c_old = c.filter(item => !finalTurns.some(f => f.kind === item.kind && (f as any).text === (item as any).text && (f as any).name === (item as any).name));
+        return [...c_old, ...finalTurns];
+      });
+
       if (resp.invoice && onInvoiceReady) onInvoiceReady(resp.invoice);
     } catch (e) {
       setError((e as Error).message);

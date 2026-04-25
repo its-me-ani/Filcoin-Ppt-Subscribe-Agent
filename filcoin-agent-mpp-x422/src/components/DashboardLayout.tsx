@@ -8,7 +8,6 @@ import DashboardSidebar from './DashboardSidebar';
 import { localTemplateService } from '../services/local-template-service';
 import './DashboardLayout.css';
 import { useStatusBar, StatusBarPresets } from '../hooks/useStatusBar';
-import CoPilotPanel from './copilot/CoPilotPanel';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -17,7 +16,6 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
-    const [isCopilotOpen, setIsCopilotOpen] = useState(false);
     // Theme logic removed
     const history = useHistory();
     const location = useLocation();
@@ -125,7 +123,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     <IonButton
                         fill="outline"
                         color="primary"
-                        onClick={() => setIsCopilotOpen(true)}
+                        onClick={() => history.push('/app/copilot')}
                         style={{
                             height: '36px',
                             fontSize: '14px',
@@ -179,8 +177,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     {children}
                 </main>
             </div>
-
-            <CoPilotPanel isOpen={isCopilotOpen} onClose={() => setIsCopilotOpen(false)} />
         </div>
     );
 };

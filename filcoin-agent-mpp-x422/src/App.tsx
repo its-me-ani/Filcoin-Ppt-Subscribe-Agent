@@ -7,6 +7,7 @@ import SettingsPage from "./pages/SettingsPage";
 import InventoryPage from "./pages/InventoryPage";
 import BusinessInfoPage from "./pages/BusinessInfoPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import CopilotPage from "./pages/CopilotPage";
 
 
 import DashboardLayout from "./components/DashboardLayout";
@@ -68,61 +69,62 @@ const AppContent: React.FC = () => {
     <>
       <TitleBar />
       <IonApp className={`light-theme${isElectron ? ' electron-mode' : ''}`}>
-      <WalletProvider>
-      <InvoiceProvider>
-        <IonReactRouter>
-          <IonRouterOutlet>
-            {/* Onboarding / Welcome Page */}
-            <Route exact path="/" render={() =>
-              isOnboardingCompleted ? <Redirect to="/app/dashboard/home" /> : <OnboardingPage />
-            } />
+        <WalletProvider>
+          <InvoiceProvider>
+            <IonReactRouter>
+              <IonRouterOutlet>
+                {/* Onboarding / Welcome Page */}
+                <Route exact path="/" render={() =>
+                  isOnboardingCompleted ? <Redirect to="/app/dashboard/home" /> : <OnboardingPage />
+                } />
 
-            {/* Dashboard Routes */}
-            <Route path="/app/dashboard" render={() => (
-              <>
-                <DashboardLayout>
-                  <IonRouterOutlet>
-                    <Route exact path="/app/dashboard/home" component={DashboardHome} />
-                    <Route exact path="/app/dashboard/inventory" component={InventoryPage} />
-                    <Route exact path="/app/dashboard/business-info" component={BusinessInfoPage} />
-                    <Route exact path="/app/dashboard/settings" component={SettingsPage} />
+                {/* Dashboard Routes */}
+                <Route path="/app/dashboard" render={() => (
+                  <>
+                    <DashboardLayout>
+                      <IonRouterOutlet>
+                        <Route exact path="/app/dashboard/home" component={DashboardHome} />
+                        <Route exact path="/app/dashboard/inventory" component={InventoryPage} />
+                        <Route exact path="/app/dashboard/business-info" component={BusinessInfoPage} />
+                        <Route exact path="/app/dashboard/settings" component={SettingsPage} />
 
-                    <Route exact path="/app/dashboard">
-                      <Redirect to="/app/dashboard/home" />
-                    </Route>
-                  </IonRouterOutlet>
-                </DashboardLayout>
-              </>
-            )} />
+                        <Route exact path="/app/dashboard">
+                          <Redirect to="/app/dashboard/home" />
+                        </Route>
+                      </IonRouterOutlet>
+                    </DashboardLayout>
+                  </>
+                )} />
 
-            {/* Editor Routes */}
-            <Route exact path="/app/editor/:fileName" component={InvoicePage} />
-            <Route exact path="/app/editor" component={InvoicePage} />
+                {/* Editor & Copilot Routes (Independent of Dashboard Layout) */}
+                <Route exact path="/app/copilot" component={CopilotPage} />
+                <Route exact path="/app/editor/:fileName" component={InvoicePage} />
+                <Route exact path="/app/editor" component={InvoicePage} />
 
-            {/* Legacy Redirects */}
-            <Route exact path="/app/files">
-              <Redirect to="/app/dashboard/home" />
-            </Route>
-            <Route exact path="/app/settings">
-              <Redirect to="/app/dashboard/settings" />
-            </Route>
-            <Route exact path="/app/invoice-ai/:templateId">
-              <Redirect to="/app/dashboard/home" />
-            </Route>
-            <Route exact path="/app/invoice-ai">
-              <Redirect to="/app/dashboard/home" />
-            </Route>
-            <Route exact path="/app/invoice-store">
-              <Redirect to="/app/dashboard/home" />
-            </Route>
-            <Route exact path="/app">
-              <Redirect to="/app/dashboard/home" />
-            </Route>
-          </IonRouterOutlet>
-        </IonReactRouter>
-      </InvoiceProvider>
-      </WalletProvider>
-    </IonApp>
+                {/* Legacy Redirects */}
+                <Route exact path="/app/files">
+                  <Redirect to="/app/dashboard/home" />
+                </Route>
+                <Route exact path="/app/settings">
+                  <Redirect to="/app/dashboard/settings" />
+                </Route>
+                <Route exact path="/app/invoice-ai/:templateId">
+                  <Redirect to="/app/dashboard/home" />
+                </Route>
+                <Route exact path="/app/invoice-ai">
+                  <Redirect to="/app/dashboard/home" />
+                </Route>
+                <Route exact path="/app/invoice-store">
+                  <Redirect to="/app/dashboard/home" />
+                </Route>
+                <Route exact path="/app">
+                  <Redirect to="/app/dashboard/home" />
+                </Route>
+              </IonRouterOutlet>
+            </IonReactRouter>
+          </InvoiceProvider>
+        </WalletProvider>
+      </IonApp>
     </>
   );
 };

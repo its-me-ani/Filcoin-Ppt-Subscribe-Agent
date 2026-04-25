@@ -45,6 +45,7 @@ const BACKEND_URL =
 export async function sendMessage(
   message: string,
   sessionId?: string,
+  onTurn?: (turn: AgentTurn) => void,
   signal?: AbortSignal,
 ): Promise<AgentResponse> {
   const res = await fetch(`${BACKEND_URL}/api/agent/chat`, {
@@ -54,7 +55,41 @@ export async function sendMessage(
     signal,
   });
   if (!res.ok) throw new Error(`Co-Pilot ${res.status}: ${await res.text()}`);
-  return res.json();
+
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('No readable stream from response');
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let finalResult: AgentResponse | undefined;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() ?? ''; // keep the last incomplete chunk in buffer
+
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try {
+        const payload = JSON.parse(line);
+        if (payload.type === 'error') throw new Error(payload.error);
+        if (payload.type === 'turn' && onTurn) {
+          onTurn(payload.turn);
+        }
+        if (payload.type === 'done') {
+          finalResult = payload.result as AgentResponse;
+        }
+      } catch (e) {
+        if ((e as Error).message !== 'Unexpected end of JSON input') console.warn('Failed to parse NDJSON segment', e);
+        else throw e;
+      }
+    }
+  }
+
+  if (!finalResult) throw new Error('Stream ended without a done payload');
+  return finalResult;
 }
 
 export async function getSession(id: string): Promise<AgentResponse> {
